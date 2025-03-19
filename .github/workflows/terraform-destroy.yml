@@ -49,4 +49,4 @@ jobs:
 
       - name: Delete S3 bucket
         run: |
-          aws --region ${{ env.AWS_REGION }} s3api delete-bucket --bucket ${{ env.S3_BUCKET_NAME }} --force
+          aws s3api delete-bucket --bucket ${{ env.S3_BUCKET_NAME }} --region ${{ env.AWS_REGION }}
