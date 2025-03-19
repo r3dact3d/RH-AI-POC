@@ -250,9 +250,9 @@ resource "null_resource" "hostname_update" {
     
     connection {
       type        = "ssh"
-      host        = aws_instance.aap_instance.public_ip
+      host        = aws_instance.rhelai_instance.public_ip
       user        = "ec2-user"
-      private_key = tls_private_key.cloud_key.private_key_pem
+      private_key = tls_private_key.rhelai_cloud_key.private_key_pem
     }
   }
 }
