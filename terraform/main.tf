@@ -29,16 +29,16 @@ provider "aws" {
 
 # Really don't need this key pair
 #Generate SSH key pair for remote-exec
-resource "tls_private_key" "cloud_key" {
+resource "tls_private_key" "rhelai_cloud_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
 
 
 # Add key for ssh connection
-resource "aws_key_pair" "cloud_key" {
-  key_name   = "cloud_key"
-  public_key = tls_private_key.cloud_key.public_key_openssh
+resource "aws_key_pair" "rhelai_cloud_key" {
+  key_name   = "rhelai_cloud_key"
+  public_key = tls_private_key.rhelai_cloud_key.public_key_openssh
 }
 
 resource "aws_vpc" "rhelai_vpc" {
@@ -207,7 +207,7 @@ resource "aws_instance" "rhelai_instance" {
   instance_type               = "g4dn.xlarge"
   vpc_security_group_ids      = [aws_security_group.rhelai_security_group.id]
   associate_public_ip_address = true
-  key_name        = aws_key_pair.cloud_key.key_name
+  key_name                    = aws_key_pair.rhelai_cloud_key.key_name
   user_data                   = file("user_data.txt")
   #ami                         = data.aws_ami.rhel.id
   ami                         = "ami-00dfd618096881315"
@@ -241,6 +241,28 @@ resource "null_resource" "hostname_update" {
 
       # Set hostname
       "sudo hostnamectl set-hostname ${aws_instance.rhelai_instance.public_dns}",
+
+      # Setup Python virtual environment and requirements
+      "python3.11 -m venv --upgrade-deps venv",
+      "source venv/bin/activate",
+      "pip cache remove llama_cpp_python",
+      "pip install 'instructlab[cuda]' -C cmake.args='-DLLAMA_CUDA=on' -C cmake.args='-DLLAMA_NATIVE=off'",
+      "pip install vllm@git+https://github.com/opendatahub-io/vllm@2024.08.01",
+
+      # Setup Cloud SSH Keys
+      "echo ${tls_private_key.rhelai_cloud_key.private_key_pem} >> /home/ec2-user/.ssh/cloud_keys",
+      "chmod 0644 /home/ec2-user/.ssh/cloud_keys"
+    ]
+    
+    
+    connection {
+      type        = "ssh"
+      host        = aws_instance.rhelai_instance.public_ip
+      user        = "ec2-user"
+      private_key = tls_private_key.rhelai_cloud_key.private_key_pem
+    }
+  }
+}
 
 
 # Add created ec2 instance to ansible inventory
