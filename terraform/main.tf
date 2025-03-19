@@ -29,15 +29,15 @@ provider "aws" {
 
 # Really don't need this key pair
 #Generate SSH key pair for remote-exec
-resource "tls_private_key" "cloud_key" {
+resource "tls_private_key" "rhelai_cloud_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
 
 
 # Add key for ssh connection
-resource "aws_key_pair" "cloud_key" {
-  key_name   = "cloud_key"
+resource "aws_key_pair" "rhelai_cloud_key" {
+  key_name   = "rhelai_cloud_key"
   public_key = tls_private_key.rhelai_cloud_key.public_key_openssh
 }
 
