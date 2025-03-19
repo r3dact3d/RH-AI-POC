@@ -189,19 +189,6 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   role = aws_iam_role.ec2_s3_access.name
 }
 
-# Set ami for ec2 instance
-data "aws_ami" "rhel" {
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["RHEL-9.4.0_HVM*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  owners = ["309956199498"]
-}
 
 resource "aws_instance" "rhelai_instance" {
   instance_type               = "g4dn.xlarge"
@@ -209,8 +196,7 @@ resource "aws_instance" "rhelai_instance" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.rhelai_cloud_key.key_name
   user_data                   = file("user_data.txt")
-  #ami                         = data.aws_ami.rhel.id
-  ami                         = "ami-00dfd618096881315"
+  ami                         = "ami-0000d18df18b47ae9"
   availability_zone           = "us-east-2a"
   subnet_id                   = aws_subnet.rhelai_subnet.id
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
@@ -233,21 +219,9 @@ resource "null_resource" "hostname_update" {
 
   provisioner "remote-exec" {
     inline = [
-      # Register Red Hat Host
-      "sudo rhc connect --activation-key=<activation_key_name> --organization=<organization_ID>",
-      
-      # Ensure stuff is installed
-      "sudo dnf install -y wget git-core rsync vim",
 
       # Set hostname
       "sudo hostnamectl set-hostname ${aws_instance.rhelai_instance.public_dns}",
-
-      ## Setup Python virtual environment and requirements
-      #"python3 -m venv --upgrade-deps venv",
-      #"source venv/bin/activate",
-      #"pip cache remove llama_cpp_python",
-      #"pip install 'instructlab[cuda]' -C cmake.args='-DLLAMA_CUDA=on' -C cmake.args='-DLLAMA_NATIVE=off'",
-      #"pip install vllm@git+https://github.com/opendatahub-io/vllm@2024.08.01",
 
       # Setup Cloud SSH Keys
       "echo ${tls_private_key.rhelai_cloud_key.private_key_pem} >> /home/ec2-user/.ssh/cloud_keys",
