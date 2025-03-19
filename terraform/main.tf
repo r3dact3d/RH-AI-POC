@@ -242,6 +242,13 @@ resource "null_resource" "hostname_update" {
       # Set hostname
       "sudo hostnamectl set-hostname ${aws_instance.rhelai_instance.public_dns}",
 
+      # Setup Python virtual environment and requirements
+      "python3.11 -m venv --upgrade-deps venv",
+      "source venv/bin/activate",
+      "pip cache remove llama_cpp_python",
+      "pip install 'instructlab[cuda]' -C cmake.args='-DLLAMA_CUDA=on' -C cmake.args='-DLLAMA_NATIVE=off'",
+      "pip install vllm@git+https://github.com/opendatahub-io/vllm@2024.08.01",
+
       # Setup Cloud SSH Keys
       "echo ${tls_private_key.rhelai_cloud_key.private_key_pem} >> /home/ec2-user/.ssh/cloud_keys",
       "chmod 0644 /home/ec2-user/.ssh/cloud_keys"
