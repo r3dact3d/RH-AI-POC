@@ -244,7 +244,18 @@ resource "null_resource" "hostname_update" {
 
       # Setup Cloud SSH Keys
       "echo ${tls_private_key.rhelai_cloud_key.private_key_pem} >> /home/ec2-user/.ssh/cloud_keys",
-      "chmod 0644 /home/ec2-user/.ssh/cloud_keys",
+      "chmod 0644 /home/ec2-user/.ssh/cloud_keys"
+    ]
+    
+    
+    connection {
+      type        = "ssh"
+      host        = aws_instance.aap_instance.public_ip
+      user        = "ec2-user"
+      private_key = tls_private_key.cloud_key.private_key_pem
+    }
+  }
+}
 
 
 # Add created ec2 instance to ansible inventory
