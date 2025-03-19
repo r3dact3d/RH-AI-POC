@@ -38,7 +38,7 @@ jobs:
       
       - name: Terraform init
         id: init
-        run: terraform init -backend-config="bucket=tfstate-bucket-auto-intelligence"
+        run: terraform init -backend-config="bucket=${{ env.S3_BUCKET_NAME }}"
 
       - name: Destroy Infrastructure
         run: terraform destroy -auto-approve
