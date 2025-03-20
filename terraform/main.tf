@@ -27,7 +27,7 @@ provider "aws" {
   region = "<AWS_REGION>"
 }
 
-# Really don't need this key pair
+# We need this key pair 
 #Generate SSH key pair for remote-exec
 resource "tls_private_key" "rhelai_cloud_key" {
   algorithm = "RSA"
@@ -103,33 +103,13 @@ resource "aws_security_group" "rhelai_security_group" {
   }
 }
 
-# So I can http to Open WebUI for testing and troubleshooting
-resource "aws_security_group_rule" "rhelai_ingress_access" {
-  type              = "ingress"
-  from_port         = 3000
-  to_port           = 3000
-  protocol          = "tcp"
-  cidr_blocks       = ["<source_ip>/32"]
-  security_group_id = aws_security_group.rhelai_security_group.id
-}
-
 # So I can ssh to the ec2 instance
 resource "aws_security_group_rule" "ssh_ingress_access" {
   type              = "ingress"
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
-  cidr_blocks       = ["<source_ip>/32"]
-  security_group_id = aws_security_group.rhelai_security_group.id
-}
-
-# Secure port to Open WebUI
-resource "aws_security_group_rule" "https_ingress_access" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["<source_ip>/32"]
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.rhelai_security_group.id
 }
 
